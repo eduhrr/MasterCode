@@ -32,7 +32,7 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.Image;
 
 /**
- * @author Eduardo Hernández Marquina
+ * @author Eduardo Hernandez Marquina
  * @author Hector Veiga
  * @author Gerardo Travesedo
  * 
