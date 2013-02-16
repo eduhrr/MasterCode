@@ -82,7 +82,7 @@ public class readQueue {
 		// downloading the WorkerCode and the AWS credentials
 		lines.add("sudo git clone git://github.com/eduhrr/Worker.git");
 		lines.add("sudo mv Worker/Worker/src src");
-		lines.add("sudo wget https://s3.amazonaws.com/test-eduhdez/AwsCredentials.properties");
+		//lines.add("sudo wget https://s3.amazonaws.com/test-eduhdez/AwsCredentials.properties");
 		// running WorkerCode
 		// redirecting outputs and loggings to /var/www/java.txt
 		lines.add("sudo touch /var/www/java.txt");
@@ -95,12 +95,28 @@ public class readQueue {
 	}
 
 	public static void main(String[] args) throws Exception {
+		// Taking the queue
+		GetQueueUrlRequest qrequest = new GetQueueUrlRequest("iitLuna");
+		String url = getSqs().getQueueUrl(qrequest).getQueueUrl();
+		
+		new MasterSocket(6060, url).start();
+		System.out.println("hey hey!!! first socket thread launched");
 
+		// //Change visibility
+		// ChangeMessageVisibilityRequest changeVisibility = new
+		// ChangeMessageVisibilityRequest(url,messages.get(0).getReceiptHandle(),60*60*10);
+		// //10 h in seconds max 12h
+		//
+		//
+		// // Deleting the message
+		// DeleteMessageRequest delRequest = new
+		// DeleteMessageRequest(url,
+		// messages.get(0).getReceiptHandle());
+		// getSqs().deleteMessage(delRequest);
+		
 		while (true) {
 			try {
-				// Taking the queue
-				GetQueueUrlRequest qrequest = new GetQueueUrlRequest("iitLuna");
-				String url = getSqs().getQueueUrl(qrequest).getQueueUrl();
+
 
 				// Taking 1 message
 				ReceiveMessageRequest rMessage = new ReceiveMessageRequest(url);
@@ -135,7 +151,7 @@ public class readQueue {
 				List<Image> images = imageResult.getImages();
 				String instanceID = "";
 				for (int image = 0; image < images.size(); image++) {
-					if (images.get(image).getDescription().contains("test7")) { // TODO:
+					if (images.get(image).getDescription().contains("test8")) { // TODO:
 																				// attention:
 																				// get
 																				// the
@@ -182,20 +198,7 @@ public class readQueue {
 				// default visibility set to 15 minutes ->time to establish
 				// communication between sockets
 
-				new MasterSocket(6060, url).start();
-				System.out.println("hey hey!!! first socket thread launched");
-
-				// //Change visibility
-				// ChangeMessageVisibilityRequest changeVisibility = new
-				// ChangeMessageVisibilityRequest(url,messages.get(0).getReceiptHandle(),60*60*10);
-				// //10 h in seconds max 12h
-				//
-				//
-				// // Deleting the message
-				// DeleteMessageRequest delRequest = new
-				// DeleteMessageRequest(url,
-				// messages.get(0).getReceiptHandle());
-				// getSqs().deleteMessage(delRequest);
+				
 
 			} catch (AmazonServiceException ase) {
 				System.out
