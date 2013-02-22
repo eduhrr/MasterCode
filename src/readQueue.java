@@ -105,6 +105,7 @@ public class readQueue {
 		// //Change visibility
 		// ChangeMessageVisibilityRequest changeVisibility = new
 		// ChangeMessageVisibilityRequest(url,messages.get(0).getReceiptHandle(),60*60*10);
+		// sqs.changeMessageVisibility(changeVisibility);
 		// //10 h in seconds max 12h
 		//
 		//

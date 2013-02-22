@@ -40,22 +40,29 @@ public class serverWorkerThread implements Runnable {
 
 			// change visibility
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
-					url, this.receipHandle, 60 * 60 * 10);	// 10 h in seconds
+					url, this.receipHandle, 60 * 60 * 10); // 10 h in seconds
 															// max 12h
+			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
 			// send the rowID
 			// output.writeInt(312);
 
 			// listen the result
-			String result = input.readUTF();
-			System.out.println("result=" + result);
-			if (result.equals("DONE")) {
-				DeleteMessageRequest delRequest = new DeleteMessageRequest(url,
-						this.receipHandle);
-				readQueue.getSqs().deleteMessage(delRequest);
-			} else { // bad result --> terminate visibility timeout
-				changeVisibility.setVisibilityTimeout(0);
-			}
+			String result = "";
+			do {
+				result = input.readUTF();
+				System.out.println("result=" + result);
+				if (result.equals("ERROR")) {
+					// error --> terminate visibility timeout
+					changeVisibility.setVisibilityTimeout(0);
+					readQueue.getSqs()
+							.changeMessageVisibility(changeVisibility);
+				}
+			} while (!result.equals("The rendering has been finished"));
+
+			DeleteMessageRequest delRequest = new DeleteMessageRequest(url,
+					this.receipHandle);
+			readQueue.getSqs().deleteMessage(delRequest);
 
 			output.close();
 			input.close();
@@ -63,7 +70,10 @@ public class serverWorkerThread implements Runnable {
 
 		} catch (IOException e) {
 			// bad result --> terminate visibility timeout
-			new ChangeMessageVisibilityRequest(url, this.receipHandle, 0);
+			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
+					url, this.receipHandle, 0);
+			readQueue.getSqs().changeMessageVisibility(changeVisibility);
+
 			e.printStackTrace();
 		}
 	}
