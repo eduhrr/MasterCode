@@ -14,10 +14,10 @@ public class serverWorkerThread implements Runnable {
 	private int rowID;
 
 	public serverWorkerThread(Socket socket, String url) throws SocketException {
-		this.serverSocket = socket;
-		this.serverSocket.setSoTimeout(60000); // TODO: 20 mins ->control
-												// infinite loop case in
-												// LunaWorker
+		setServerSocket(socket);
+		// Giving 15 mins max to receive the rowID and then other 15 to receive
+		// the receiptHandle before the this thread will finish.
+		getServerSocket().setSoTimeout(15 * 60 * 1000);
 		this.url = url;
 
 	}
@@ -34,15 +34,20 @@ public class serverWorkerThread implements Runnable {
 			// listen the rowID
 			setRowID(Integer.valueOf(input.readUTF()));
 			System.out.println("rowID=" + getRowID());
-			
+
 			// listen the receiptHandle
 			setReceipHandle(input.readUTF());
 			System.out.println("receipHandle=" + getReceipHandle());
 
-			// change visibility
+			// Giving 1 hour to the worker to send the status before this thread
+			// will be closed
+			// getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
+			//TODO: testing
+			getServerSocket().setSoTimeout(60 * 1000); //1 minute test
+
+			// changing visibility to 11 hours
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
-					url, this.receipHandle, 60 * 60 * 10); // 10 h in seconds
-															// max 12h
+					url, this.receipHandle, 11 * 60 * 60);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
 			// send the rowID
@@ -52,7 +57,7 @@ public class serverWorkerThread implements Runnable {
 			String result = "";
 			do {
 				result = input.readUTF();
-				System.out.println("result=" + result);
+				System.out.println("Worker " + getRowID() + "= " + result);
 				if (result.equals("ERROR")) {
 					// error --> terminate visibility timeout
 					changeVisibility.setVisibilityTimeout(0);
@@ -68,7 +73,17 @@ public class serverWorkerThread implements Runnable {
 			output.close();
 			input.close();
 			serverSocket.close();
+			System.out.println("terminated communication thread");
+		} catch (SocketException e) {
+			System.out.println("Communication Timeout with the worker "
+					+ getRowID() + " has elapsed");
+			System.out.println("The rendering work " + getRowID()
+					+ " will need to be restarted");
+			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
+					url, this.receipHandle, 0);
+			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
+			e.printStackTrace();
 		} catch (IOException e) {
 			// bad result --> terminate visibility timeout
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
@@ -110,6 +125,5 @@ public class serverWorkerThread implements Runnable {
 	public void setRowID(int rowID) {
 		this.rowID = rowID;
 	}
-	
 
 }
