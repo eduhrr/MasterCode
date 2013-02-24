@@ -11,6 +11,7 @@ public class serverWorkerThread implements Runnable {
 	private Socket serverSocket;
 	private String url;
 	private String receipHandle;
+	private int rowID;
 
 	public serverWorkerThread(Socket socket, String url) throws SocketException {
 		this.serverSocket = socket;
@@ -30,13 +31,13 @@ public class serverWorkerThread implements Runnable {
 			input = new DataInputStream(serverSocket.getInputStream());
 			output = new DataOutputStream(serverSocket.getOutputStream());
 
-			// TODO: listen the rowID and the receipHandle
-			String recivedData = input.readUTF();
-			String[] parts = recivedData.split(",");
-			String rowID = parts[0];
-			this.receipHandle = parts[1];
-			System.out.println("rowID=" + rowID);
-			System.out.println("receipHandle=" + this.receipHandle);
+			// listen the rowID
+			setRowID(Integer.valueOf(input.readUTF()));
+			System.out.println("rowID=" + getRowID());
+			
+			// listen the receiptHandle
+			setReceipHandle(input.readUTF());
+			System.out.println("receipHandle=" + getReceipHandle());
 
 			// change visibility
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
@@ -47,7 +48,7 @@ public class serverWorkerThread implements Runnable {
 			// send the rowID
 			// output.writeInt(312);
 
-			// listen the result
+			// listen the worker status
 			String result = "";
 			do {
 				result = input.readUTF();
@@ -77,5 +78,38 @@ public class serverWorkerThread implements Runnable {
 			e.printStackTrace();
 		}
 	}
+
+	public Socket getServerSocket() {
+		return serverSocket;
+	}
+
+	public void setServerSocket(Socket serverSocket) {
+		this.serverSocket = serverSocket;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getReceipHandle() {
+		return receipHandle;
+	}
+
+	public void setReceipHandle(String receipHandle) {
+		this.receipHandle = receipHandle;
+	}
+
+	public int getRowID() {
+		return rowID;
+	}
+
+	public void setRowID(int rowID) {
+		this.rowID = rowID;
+	}
+	
 
 }

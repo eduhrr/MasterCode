@@ -40,10 +40,12 @@ import com.amazonaws.services.ec2.model.Image;
 public class readQueue {
 	private static AmazonSQS sqs;
 	private static AmazonEC2 ec2;
+	//Port to listen socket connections
+	private static int port =6060;
 
 	/**
 	 * Static initializer block for setting up the AWS credentials which should
-	 * be in the top folder-
+	 * be in the top folder.
 	 * 
 	 */
 	static {
@@ -99,7 +101,7 @@ public class readQueue {
 		GetQueueUrlRequest qrequest = new GetQueueUrlRequest("iitLuna");
 		String url = getSqs().getQueueUrl(qrequest).getQueueUrl();
 		
-		new MasterSocket(6060, url).start();
+		new MasterSocket(getPort(), url).start();
 		System.out.println("hey hey!!! first socket thread launched");
 
 		// //Change visibility
@@ -279,4 +281,7 @@ public class readQueue {
 		readQueue.ec2 = ec2;
 	}
 
+	public static int getPort() {
+		return port;
+	}
 }
