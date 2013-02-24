@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
@@ -42,8 +43,8 @@ public class serverWorkerThread implements Runnable {
 			// Giving 1 hour to the worker to send the status before this thread
 			// will be closed
 			// getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
-			//TODO: testing
-			getServerSocket().setSoTimeout(60 * 1000); //1 minute test
+			// TODO: testing
+			getServerSocket().setSoTimeout(60 * 1000); // 1 minute test
 
 			// changing visibility to 11 hours
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
@@ -66,6 +67,7 @@ public class serverWorkerThread implements Runnable {
 				}
 			} while (!result.equals("The rendering has been finished"));
 
+			System.out.println("Deleting SQS message with rowID=" + getRowID());
 			DeleteMessageRequest delRequest = new DeleteMessageRequest(url,
 					this.receipHandle);
 			readQueue.getSqs().deleteMessage(delRequest);
@@ -73,8 +75,9 @@ public class serverWorkerThread implements Runnable {
 			output.close();
 			input.close();
 			serverSocket.close();
-			System.out.println("terminated communication thread");
-		} catch (SocketException e) {
+			System.out.println("communication thread with Worker " + getRowID()
+					+ "is ending");
+		} catch (SocketTimeoutException e) {
 			System.out.println("Communication Timeout with the worker "
 					+ getRowID() + " has elapsed");
 			System.out.println("The rendering work " + getRowID()
