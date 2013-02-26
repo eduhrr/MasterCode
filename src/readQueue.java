@@ -154,7 +154,7 @@ public class readQueue {
 				List<Image> images = imageResult.getImages();
 				String instanceID = "";
 				for (int image = 0; image < images.size(); image++) {
-					if (images.get(image).getDescription().contains("test10")) { // TODO:
+					if (images.get(image).getDescription().contains("test11")) { // TODO:
 																				// attention:
 																				// get
 																				// the

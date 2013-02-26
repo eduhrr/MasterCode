@@ -42,14 +42,14 @@ public class ServerWorkerThread implements Runnable {
 
 			// Giving 1 hour to the worker to send the status before this thread
 			// will be closed
-			 getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
+			getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
 
 			// changing visibility to 11 hours
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receipHandle, 11 * 60 * 60);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
-			// TODO:??  //send the rowID
+			// TODO:?? //send the rowID
 			// output.writeInt(312);
 
 			// listen the worker status
@@ -59,9 +59,11 @@ public class ServerWorkerThread implements Runnable {
 				System.out.println("Worker " + getRowID() + "= " + result);
 				if (result.equals("ERROR")) {
 					// error --> terminate visibility timeout
-					changeVisibility.setVisibilityTimeout(0);
-					readQueue.getSqs()
-							.changeMessageVisibility(changeVisibility);
+					System.out.println("Worker " + getRowID()
+							+ "= The worker has got an error");
+					System.out.println("The rendering job #" + getRowID()
+							+ " will need to be restarted");
+					throw new Exception();
 				}
 			} while (!result.equals("The rendering has been finished"));
 
@@ -74,7 +76,7 @@ public class ServerWorkerThread implements Runnable {
 			input.close();
 			serverSocket.close();
 			System.out.println("communication thread with Worker " + getRowID()
-					+ "is ending");
+					+ " is ending");
 		} catch (SocketTimeoutException e) {
 			System.out.println("Communication Timeout with the worker #"
 					+ getRowID() + " has elapsed");
@@ -85,12 +87,11 @@ public class ServerWorkerThread implements Runnable {
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// bad result --> terminate visibility timeout
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receipHandle, 0);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
-
 			e.printStackTrace();
 		}
 	}
