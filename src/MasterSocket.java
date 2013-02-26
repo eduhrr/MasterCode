@@ -18,7 +18,7 @@ public class MasterSocket extends Thread {
 		try {
 			while (true) {
 				Socket workerSocket = serverSocket.accept();
-				Runnable newWorker = new serverWorkerThread(workerSocket, url);
+				Runnable newWorker = new ServerWorkerThread(workerSocket, url);
 				Thread t = new Thread(newWorker);
 				t.start();
 			}

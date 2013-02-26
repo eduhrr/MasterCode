@@ -8,13 +8,13 @@ import java.net.SocketTimeoutException;
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 
-public class serverWorkerThread implements Runnable {
+public class ServerWorkerThread implements Runnable {
 	private Socket serverSocket;
 	private String url;
 	private String receipHandle;
 	private int rowID;
 
-	public serverWorkerThread(Socket socket, String url) throws SocketException {
+	public ServerWorkerThread(Socket socket, String url) throws SocketException {
 		setServerSocket(socket);
 		// Giving 15 mins max to receive the rowID and then other 15 to receive
 		// the receiptHandle before the this thread will finish.
@@ -42,16 +42,14 @@ public class serverWorkerThread implements Runnable {
 
 			// Giving 1 hour to the worker to send the status before this thread
 			// will be closed
-			// getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
-			// TODO: testing
-			getServerSocket().setSoTimeout(60 * 1000); // 1 minute test
+			 getServerSocket().setSoTimeout(1 * 60 * 60 * 1000);
 
 			// changing visibility to 11 hours
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receipHandle, 11 * 60 * 60);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
-			// send the rowID
+			// TODO:??  //send the rowID
 			// output.writeInt(312);
 
 			// listen the worker status
@@ -78,9 +76,9 @@ public class serverWorkerThread implements Runnable {
 			System.out.println("communication thread with Worker " + getRowID()
 					+ "is ending");
 		} catch (SocketTimeoutException e) {
-			System.out.println("Communication Timeout with the worker "
+			System.out.println("Communication Timeout with the worker #"
 					+ getRowID() + " has elapsed");
-			System.out.println("The rendering work " + getRowID()
+			System.out.println("The rendering job #" + getRowID()
 					+ " will need to be restarted");
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receipHandle, 0);
