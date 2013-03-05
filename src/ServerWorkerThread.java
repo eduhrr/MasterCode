@@ -1,6 +1,5 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -8,10 +7,18 @@ import java.net.SocketTimeoutException;
 import com.amazonaws.services.sqs.model.ChangeMessageVisibilityRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 
+/**
+ * 
+ * Class responsible for 1 communications with the worker which is dealing with
+ * the rendering of the video identified by rowID
+ * 
+ * @author Eduardo Hernandez Marquina
+ * 
+ */
 public class ServerWorkerThread implements Runnable {
 	private Socket serverSocket;
 	private String url;
-	private String receipHandle;
+	private String receiptHandle;
 	private int rowID;
 
 	public ServerWorkerThread(Socket socket, String url) throws SocketException {
@@ -34,11 +41,13 @@ public class ServerWorkerThread implements Runnable {
 
 			// listen the rowID
 			setRowID(Integer.valueOf(input.readUTF()));
-			System.out.println("rowID=" + getRowID());
+			System.out.println("ServerWokerThread " + rowID
+					+ ": Got the RowID sussccesfully");
 
 			// listen the receiptHandle
 			setReceipHandle(input.readUTF());
-			System.out.println("receipHandle=" + getReceipHandle());
+			System.out.println("ServerWokerThread " + rowID + ": receipHandle="
+					+ getReceipHandle());
 
 			// Giving 1 hour to the worker to send the status before this thread
 			// will be closed
@@ -46,11 +55,8 @@ public class ServerWorkerThread implements Runnable {
 
 			// changing visibility to 11 hours
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
-					url, this.receipHandle, 11 * 60 * 60);
+					url, this.receiptHandle, 11 * 60 * 60);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
-
-			// TODO:?? //send the rowID
-			// output.writeInt(312);
 
 			// listen the worker status
 			String result = "";
@@ -59,38 +65,46 @@ public class ServerWorkerThread implements Runnable {
 				System.out.println("Worker " + getRowID() + "= " + result);
 				if (result.equals("ERROR")) {
 					// error --> terminate visibility timeout
-					System.out.println("Worker " + getRowID()
-							+ "= The worker has got an error");
-					System.out.println("The rendering job #" + getRowID()
+					System.out.println("ServerWokerThread " + rowID
+							+ ": worker " + getRowID() + " has got an error");
+					System.out.println("ServerWokerThread " + rowID
+							+ ":The rendering job #" + getRowID()
 							+ " will need to be restarted");
 					throw new Exception();
 				}
 			} while (!result.equals("The rendering has been finished"));
 
-			System.out.println("Deleting SQS message with rowID=" + getRowID());
+			System.out.println("ServerWokerThread " + rowID
+					+ ": Deleting SQS message with rowID=" + getRowID());
 			DeleteMessageRequest delRequest = new DeleteMessageRequest(url,
-					this.receipHandle);
+					this.receiptHandle);
 			readQueue.getSqs().deleteMessage(delRequest);
 
 			output.close();
 			input.close();
 			serverSocket.close();
-			System.out.println("communication thread with Worker " + getRowID()
+			System.out.println("ServerWokerThread " + rowID
+					+ ":communication thread with Worker " + getRowID()
 					+ " is ending");
 		} catch (SocketTimeoutException e) {
-			System.out.println("Communication Timeout with the worker #"
+			System.out.println("ServerWokerThread " + rowID
+							+ ":Communication Timeout with the worker #"
 					+ getRowID() + " has elapsed");
-			System.out.println("The rendering job #" + getRowID()
+			System.out.println("ServerWokerThread " + rowID
+					+ ":The rendering job #" + getRowID()
 					+ " will need to be restarted");
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
-					url, this.receipHandle, 0);
+					url, this.receiptHandle, 0);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 
 			e.printStackTrace();
 		} catch (Exception e) {
 			// bad result --> terminate visibility timeout
+			System.out.println("ServerWokerThread " + rowID
+					+ ":The SQS Message #" + getRowID()
+					+ " has terminated its visibility TimeOut");
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
-					url, this.receipHandle, 0);
+					url, this.receiptHandle, 0);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
 			e.printStackTrace();
 		}
@@ -113,11 +127,11 @@ public class ServerWorkerThread implements Runnable {
 	}
 
 	public String getReceipHandle() {
-		return receipHandle;
+		return receiptHandle;
 	}
 
 	public void setReceipHandle(String receipHandle) {
-		this.receipHandle = receipHandle;
+		this.receiptHandle = receipHandle;
 	}
 
 	public int getRowID() {

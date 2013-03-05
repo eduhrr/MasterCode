@@ -32,6 +32,9 @@ import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.Image;
 
 /**
+ * 
+ * Main class of LunaCore
+ * 
  * @author Eduardo Hernandez Marquina
  * @author Hector Veiga
  * @author Gerardo Travesedo
@@ -40,8 +43,8 @@ import com.amazonaws.services.ec2.model.Image;
 public class readQueue {
 	private static AmazonSQS sqs;
 	private static AmazonEC2 ec2;
-	//Port to listen socket connections
-	private static int port =6060;
+	// Port to listen socket connections
+	private static int port = 6060;
 
 	/**
 	 * Static initializer block for setting up the AWS credentials which should
@@ -84,7 +87,7 @@ public class readQueue {
 		// downloading the WorkerCode and the AWS credentials
 		lines.add("sudo git clone git://github.com/eduhrr/Worker.git");
 		lines.add("sudo mv Worker/Worker/src src");
-		//lines.add("sudo wget https://s3.amazonaws.com/test-eduhdez/AwsCredentials.properties");
+		// lines.add("sudo wget https://s3.amazonaws.com/test-eduhdez/AwsCredentials.properties");
 		// running WorkerCode
 		// redirecting outputs and loggings to /var/www/java.txt
 		lines.add("sudo touch /var/www/java.txt");
@@ -100,53 +103,45 @@ public class readQueue {
 		// Taking the queue
 		GetQueueUrlRequest qrequest = new GetQueueUrlRequest("iitLuna");
 		String url = getSqs().getQueueUrl(qrequest).getQueueUrl();
-		
-		new MasterSocket(getPort(), url).start();
-		System.out.println("hey hey!!! first socket thread launched");
 
-		// //Change visibility
-		// ChangeMessageVisibilityRequest changeVisibility = new
-		// ChangeMessageVisibilityRequest(url,messages.get(0).getReceiptHandle(),60*60*10);
-		// sqs.changeMessageVisibility(changeVisibility);
-		// //10 h in seconds max 12h
-		//
-		//
-		// // Deleting the message
-		// DeleteMessageRequest delRequest = new
-		// DeleteMessageRequest(url,
-		// messages.get(0).getReceiptHandle());
-		// getSqs().deleteMessage(delRequest);
-		
+		new MasterSocket(getPort(), url).start();
+		System.out
+				.println("LunaCore: Establishing Communication Socket Launched");
+
+		String rowID = "";
+		String receiptHandle = "";
+		// Infinite loop: looking for SQS messages
 		while (true) {
 			try {
-
 
 				// Taking 1 message
 				ReceiveMessageRequest rMessage = new ReceiveMessageRequest(url);
 				ReceiveMessageResult sqsResponse = new ReceiveMessageResult();
 				rMessage.setMaxNumberOfMessages(1);
 				while (true) {
-					System.out.println("Iterating"); //TOQUIT
+					System.out
+							.println("LunaCore: Iterating: looking for SQS messages");
 					sqsResponse = getSqs().receiveMessage(rMessage);
 					if (!sqsResponse.getMessages().isEmpty())
 						break;
-					Thread.sleep(3000); //3 secs  TOMOD: put a realistic value
+					Thread.sleep(3000); // 3 secs TODO: put a realistic value
 				}
 
 				// Showing the message
 				List<Message> messages = sqsResponse.getMessages();
 				String body = messages.get(0).getBody();
 				String[] parts = body.split(",");
-				String rowID = parts[0];
+				rowID = parts[0];
 				String typeOfInstance = whatTypeOfInstance(parts);
-				String receiptHandle = messages.get(0).getReceiptHandle();
-				System.out.println("The row ID is " + rowID); // TOQUIT
-				System.out.println("The instance type is " + typeOfInstance);
-				System.out.println("The ReceiptHandle " + receiptHandle);
+				receiptHandle = messages.get(0).getReceiptHandle();
+				System.out.println("LunaCore: Found message rowID= " + rowID);
+				System.out.println("LunaCore: The instance type is "
+						+ typeOfInstance);
+				// System.out.println("The ReceiptHandle " + receiptHandle);
 
 				// Taking the AMI ID dynamically
 				DescribeImagesRequest imageRequest = new DescribeImagesRequest();
-				List<String> mine = new ArrayList<>(); 
+				List<String> mine = new ArrayList<>();
 				mine.add("self");
 				imageRequest.setOwners(mine);
 				DescribeImagesResult imageResult = new DescribeImagesResult();
@@ -154,12 +149,9 @@ public class readQueue {
 				List<Image> images = imageResult.getImages();
 				String instanceID = "";
 				for (int image = 0; image < images.size(); image++) {
-					if (images.get(image).getDescription().contains("test11")) { // TODO:
-																				// attention:
-																				// get
-																				// the
-																				// description
-																				// field
+					// TODO: attention: get the description field to chose the
+					// wanted AMI
+					if (images.get(image).getDescription().contains("test11")) {
 						instanceID = images.get(image).getImageId();
 						break;
 					}
@@ -196,33 +188,57 @@ public class readQueue {
 				// tags.withResources(instances.get(0).getInstanceId()).withTags(tag);
 				getEc2().createTags(tags);
 
-				// TODO: introduce the sockets code
-				// Launch MasterSocketsockets for communication
-				// default visibility set to 15 minutes ->time to establish
-				// communication between sockets
-
-				
-
 			} catch (AmazonServiceException ase) {
 				System.out
-						.println("Caught an AmazonServiceException, which means your request made it "
+						.println("LunaCore: Caught an AmazonServiceException, which means your request made it "
 								+ "to Amazon SQS, but was rejected with an error response for some reason.");
-				System.out.println("Error Message:    " + ase.getMessage());
-				System.out.println("HTTP Status Code: " + ase.getStatusCode());
-				System.out.println("AWS Error Code:   " + ase.getErrorCode());
-				System.out.println("Error Type:       " + ase.getErrorType());
-				System.out.println("Request ID:       " + ase.getRequestId());
+				System.out.println("LunaCore: Error Message:    "
+						+ ase.getMessage());
+				System.out.println("LunaCore: HTTP Status Code: "
+						+ ase.getStatusCode());
+				System.out.println("LunaCore: AWS Error Code:   "
+						+ ase.getErrorCode());
+				System.out.println("LunaCore: Error Type:       "
+						+ ase.getErrorType());
+				System.out.println("LunaCore: Request ID:       "
+						+ ase.getRequestId());
+				if (!rowID.equals("") || !(rowID == null)
+						&& !receiptHandle.equals("")
+						|| !(receiptHandle == null)) {
+					System.out.println("LunaCore: Worker " + rowID
+							+ "= The worker has got an error");
+					System.out.println("LunaCore: The rendering job #" + rowID
+							+ " will need to be restarted");
+					// bad result --> terminate visibility timeout
+					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
+							url, receiptHandle, 0);
+					readQueue.getSqs()
+							.changeMessageVisibility(changeVisibility);
+				}
 			} catch (AmazonClientException ace) {
 				System.out
 						.println("Caught an AmazonClientException, which means the client encountered "
 								+ "a serious internal problem while trying to communicate with SQS, such as not "
 								+ "being able to access the network.");
 				System.out.println("Error Message: " + ace.getMessage());
+				if (!rowID.equals("") || !(rowID == null)
+						&& !receiptHandle.equals("")
+						|| !(receiptHandle == null)) {
+					System.out.println("LunaCore: Worker " + rowID
+							+ "= The worker has got an error");
+					System.out.println("LunaCore: The rendering job #" + rowID
+							+ " will need to be restarted");
+					// bad result --> terminate visibility timeout
+					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
+							url, receiptHandle, 0);
+					readQueue.getSqs()
+							.changeMessageVisibility(changeVisibility);
+				}
 			}
 
-			break; // TODO: quit the break when not testing
+			// break; //uncommend for testing just 1 message
 		}
-		System.out.println("HEY HEY HEY: out of the WHILE!!");
+
 	}
 
 	/**
@@ -264,7 +280,7 @@ public class readQueue {
 		}
 		return builder.toString();
 	}
-	
+
 	public static AmazonSQS getSqs() {
 		return sqs;
 	}
