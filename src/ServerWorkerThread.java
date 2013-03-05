@@ -72,7 +72,7 @@ public class ServerWorkerThread implements Runnable {
 							+ " will need to be restarted");
 					throw new Exception();
 				}
-			} while (!result.equals("The rendering has been finished"));
+			} while (!result.equals("Autokilling!"));
 
 			System.out.println("ServerWokerThread " + rowID
 					+ ": Deleting SQS message with rowID=" + getRowID());
