@@ -38,6 +38,7 @@ import com.amazonaws.services.ec2.model.Image;
  * @author Eduardo Hernandez Marquina
  * @author Hector Veiga
  * @author Gerardo Travesedo
+ * testing
  * 
  */
 public class readQueue {
@@ -114,7 +115,7 @@ public class readQueue {
 		while (true) {
 			try {
 
-				// Taking 1 message
+				// Taking messages
 				ReceiveMessageRequest rMessage = new ReceiveMessageRequest(url);
 				ReceiveMessageResult sqsResponse = new ReceiveMessageResult();
 				rMessage.setMaxNumberOfMessages(1);
