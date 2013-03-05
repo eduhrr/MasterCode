@@ -124,7 +124,7 @@ public class readQueue {
 					sqsResponse = getSqs().receiveMessage(rMessage);
 					if (!sqsResponse.getMessages().isEmpty())
 						break;
-					Thread.sleep(3000); // 3 secs TODO: put a realistic value
+					Thread.sleep(30000); // 30 secs TODO: put a realistic value
 				}
 
 				// Showing the message
@@ -135,7 +135,7 @@ public class readQueue {
 				String typeOfInstance = whatTypeOfInstance(parts);
 				receiptHandle = messages.get(0).getReceiptHandle();
 				System.out.println("LunaCore: Found message rowID= " + rowID);
-				System.out.println("LunaCore: The instance type is "
+				System.out.println("LunaCore: The " + rowID + " associated instance type is "
 						+ typeOfInstance);
 				// System.out.println("The ReceiptHandle " + receiptHandle);
 

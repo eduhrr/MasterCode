@@ -96,8 +96,8 @@ public class ServerWorkerThread implements Runnable {
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receiptHandle, 0);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
-
-			e.printStackTrace();
+			//e.printStackTrace();
+			
 		} catch (Exception e) {
 			// bad result --> terminate visibility timeout
 			System.out.println("ServerWokerThread " + rowID
@@ -106,7 +106,7 @@ public class ServerWorkerThread implements Runnable {
 			ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 					url, this.receiptHandle, 0);
 			readQueue.getSqs().changeMessageVisibility(changeVisibility);
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 
