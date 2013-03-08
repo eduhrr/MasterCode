@@ -38,7 +38,6 @@ import com.amazonaws.services.ec2.model.Image;
  * @author Eduardo Hernandez Marquina
  * @author Hector Veiga
  * @author Gerardo Travesedo
- * testing
  * 
  */
 public class readQueue {
@@ -209,7 +208,7 @@ public class readQueue {
 					System.out.println("LunaCore: Worker " + rowID
 							+ "= The worker has got an error");
 					System.out.println("LunaCore: The rendering job #" + rowID
-							+ " will need to be restarted");
+							+ " will need to be restarted. Terminting Visibility Timeout!");
 					// bad result --> terminate visibility timeout
 					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 							url, receiptHandle, 0);
@@ -228,7 +227,7 @@ public class readQueue {
 					System.out.println("LunaCore: Worker " + rowID
 							+ "= The worker has got an error");
 					System.out.println("LunaCore: The rendering job #" + rowID
-							+ " will need to be restarted");
+							+ " will need to be restarted. Terminting Visibility Timeout!");
 					// bad result --> terminate visibility timeout
 					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 							url, receiptHandle, 0);
