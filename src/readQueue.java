@@ -120,7 +120,7 @@ public class readQueue {
 				rMessage.setMaxNumberOfMessages(1);
 				while (true) {
 					System.out
-							.println("LunaCore: Iterating: looking for SQS messages");
+							.println("\nLunaCore: Iterating: looking for SQS messages");
 					sqsResponse = getSqs().receiveMessage(rMessage);
 					if (!sqsResponse.getMessages().isEmpty())
 						break;
