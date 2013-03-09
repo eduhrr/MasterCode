@@ -26,7 +26,7 @@ public class SendSQS {
 			String url = sqs.getQueueUrl(qrequest).getQueueUrl();
 
 			// sqs.sendMessage(new SendMessageRequest(url, "55,ts"));
-			sqs.sendMessage(new SendMessageRequest(url, "225"));
+			sqs.sendMessage(new SendMessageRequest(url, "245"));
 		} catch (AmazonServiceException ase) {
 			System.out.println("Error Message:    " + ase.getMessage());
 			System.out.println("HTTP Status Code: " + ase.getStatusCode());

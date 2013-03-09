@@ -124,7 +124,7 @@ public class readQueue {
 					sqsResponse = getSqs().receiveMessage(rMessage);
 					if (!sqsResponse.getMessages().isEmpty())
 						break;
-					Thread.sleep(30000); // 30 secs TODO: put a realistic value
+					Thread.sleep(60000); // 60 secs TODO: put a realistic value
 				}
 
 				// Showing the message
@@ -210,6 +210,7 @@ public class readQueue {
 					System.out.println("LunaCore: The rendering job #" + rowID
 							+ " will need to be restarted. Terminting Visibility Timeout!");
 					// bad result --> terminate visibility timeout
+					Thread.sleep(5*1000);
 					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 							url, receiptHandle, 0);
 					readQueue.getSqs()
@@ -229,6 +230,7 @@ public class readQueue {
 					System.out.println("LunaCore: The rendering job #" + rowID
 							+ " will need to be restarted. Terminting Visibility Timeout!");
 					// bad result --> terminate visibility timeout
+					Thread.sleep(5*1000);
 					ChangeMessageVisibilityRequest changeVisibility = new ChangeMessageVisibilityRequest(
 							url, receiptHandle, 0);
 					readQueue.getSqs()

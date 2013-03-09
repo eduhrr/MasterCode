@@ -66,7 +66,7 @@ public class ServerWorkerThread implements Runnable {
 				if (result.equals("ERROR")) {
 					// error --> terminate visibility timeout
 					System.out.println("ServerWokerThread " + rowID
-							+ ": worker " + getRowID() + " has got an error");
+							+ ": worker " + getRowID() + " has got a rendering error");
 					System.out.println("ServerWokerThread " + rowID
 							+ ":The rendering job #" + getRowID()
 							+ " will need to be restarted");
